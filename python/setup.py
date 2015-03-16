@@ -70,7 +70,7 @@ class build_ext_gammu(distutils.command.build_ext.build_ext, object):
         super(build_ext_gammu, self).initialize_options()
         self.skip_deps = False
         self.pkgconfig = 'pkg-config'
-        self.pkgconfig_search_path = '/opt/gammu3/lib64/pkgconfig'
+        self.pkgconfig_search_path = '/home/notbuu/temp/gammu3/lib64/pkgconfig'
         self.gammu_libs = None
         self.gammu_incs = None
         self.gammu_cfg = None

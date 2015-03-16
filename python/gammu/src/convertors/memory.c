@@ -49,12 +49,12 @@ const char *LocationToString(GSM_EntryLocation location)
 #define convert_number(name) \
                 convert_text("Number_" name); \
                 /* VoiceTag */ \
-                PyDict_SetItemString(f, "VoiceTag", PyInt_FromLong((int)entry->Entries[i].VoiceTag)); \
+                PyDict_SetItemString(f, "VoiceTag", PyLong_FromLong((int)entry->Entries[i].VoiceTag)); \
                 /* SMSList */ \
                 l = PyList_New(0); \
                 j = 0; \
                 while (entry->Entries[i].SMSList[j] != 0) { \
-                    PyList_Append(l, PyInt_FromLong((int)entry->Entries[i].SMSList[j])); \
+                    PyList_Append(l, PyLong_FromLong((int)entry->Entries[i].SMSList[j])); \
                     j++; \
                 } \
                 PyDict_SetItemString(f, "SMSList", l); \
@@ -264,7 +264,7 @@ PyObject *MemoryEntryToPython(const GSM_MemoryEntry * entry)
 				break;
 			case PBK_Photo:
 				bitmap = &(entry->Entries[i].Picture);
-				d = PyString_FromStringAndSize((char *)bitmap->
+				d = PyBytes_FromStringAndSize((char *)bitmap->
 							       Buffer,
 							       bitmap->Length);
 				if (d == NULL) {

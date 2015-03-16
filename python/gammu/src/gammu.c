@@ -444,7 +444,7 @@ StateMachine_SetConfig(StateMachineObject *self, PyObject *args, PyObject *kwds)
     }
 
     while (PyDict_Next(dict, &pos, &key, &value)) {
-        s = PyString_AsString(key);
+        s = PyBytes_AsString(key);
         if (s == NULL) {
             PyErr_Format(PyExc_ValueError, "Non string key in configuration values");
             return NULL;
@@ -470,7 +470,7 @@ StateMachine_SetConfig(StateMachineObject *self, PyObject *args, PyObject *kwds)
                 return NULL;
             }
         } else {
-            if (PyString_Check(value) || PyUnicode_Check(value)) {
+            if (PyBytes_Check(value) || PyUnicode_Check(value)) {
                 if (PyUnicode_Check(value)) {
                     str = PyUnicode_AsASCIIString(value);
                     if (str == NULL) {
@@ -481,7 +481,7 @@ StateMachine_SetConfig(StateMachineObject *self, PyObject *args, PyObject *kwds)
                     str = value;
                     Py_INCREF(str);
                 }
-                v = PyString_AsString(value);
+                v = PyBytes_AsString(value);
                 if (v == NULL) {
                     PyErr_Format(PyExc_ValueError, "Non string value for (string) %s", s);
                     return NULL;
@@ -496,7 +496,7 @@ StateMachine_SetConfig(StateMachineObject *self, PyObject *args, PyObject *kwds)
                 } else {
                     typeobj = PyObject_Type(value);
                     typestr = PyObject_Str(typeobj);
-                    PyErr_Format(PyExc_ValueError, "Non string value for %s: %s", s, PyString_AsString(typestr));
+                    PyErr_Format(PyExc_ValueError, "Non string value for %s: %s", s, PyBytes_AsString(typestr));
                     Py_DECREF(typeobj);
                     Py_DECREF(typestr);
                     return NULL;
@@ -736,7 +736,7 @@ StateMachine_ReadDevice(StateMachineObject *self, PyObject *args, PyObject *kwds
     result = GSM_ReadDevice(self->s, waiting);
     END_PHONE_COMM
 
-    return PyInt_FromLong(result);
+    return PyLong_FromLong(result);
 }
 
 
@@ -1185,7 +1185,7 @@ StateMachine_SetAlarm(StateMachineObject *self, PyObject *args, PyObject *kwds) 
         return NULL;
 
     if (s != NULL) {
-        if (!PyString_Check(s) && !PyUnicode_Check(s)) {
+        if (!PyBytes_Check(s) && !PyUnicode_Check(s)) {
             PyErr_Format(PyExc_ValueError, "Text not string nor unicode!");
             return NULL;
         }
@@ -1816,7 +1816,7 @@ StateMachine_AddCategory(StateMachineObject *self, PyObject *args, PyObject *kwd
     Category.Type = StringToCategoryType(s);
     if (Category.Type == 0) return NULL;
 
-    if (!PyString_Check(u) && !PyUnicode_Check(u)) {
+    if (!PyBytes_Check(u) && !PyUnicode_Check(u)) {
         PyErr_Format(PyExc_ValueError, "Name not string nor unicode!");
         return NULL;
     }
@@ -2035,7 +2035,7 @@ StateMachine_SetMemory(StateMachineObject *self, PyObject *args, PyObject *kwds)
 
     if (!checkError(self->s, error, "SetMemory")) return NULL;
 
-    return PyInt_FromLong(entry.Location);
+    return PyLong_FromLong(entry.Location);
 }
 
 /*************/
@@ -2102,7 +2102,7 @@ StateMachine_AddMemory(StateMachineObject *self, PyObject *args, PyObject *kwds)
 
     if (!checkError(self->s, error, "AddMemory")) return NULL;
 
-    return PyInt_FromLong(entry.Location);
+    return PyLong_FromLong(entry.Location);
 }
 
 /****************/
@@ -2621,7 +2621,7 @@ StateMachine_SendSMS(StateMachineObject *self, PyObject *args, PyObject *kwds) {
         }
     }
 
-    return PyInt_FromLong(self->MessageReference);
+    return PyLong_FromLong(self->MessageReference);
 }
 
 
@@ -2668,7 +2668,7 @@ StateMachine_SendSavedSMS(StateMachineObject *self, PyObject *args, PyObject *kw
         }
     }
 
-    return PyInt_FromLong(self->MessageReference);
+    return PyLong_FromLong(self->MessageReference);
 
 }
 
@@ -2848,7 +2848,7 @@ StateMachine_AddSMSFolder(StateMachineObject *self, PyObject *args, PyObject *kw
                 &val))
         return NULL;
 
-    if (!PyString_Check(val) && !PyUnicode_Check(val)) {
+    if (!PyBytes_Check(val) && !PyUnicode_Check(val)) {
         PyErr_Format(PyExc_ValueError, "Name not string nor unicode!");
         return NULL;
     }
@@ -3845,7 +3845,7 @@ StateMachine_SetToDo(StateMachineObject *self, PyObject *args, PyObject *kwds) {
 
     if (!checkError(self->s, error, "SetToDo")) return NULL;
 
-    return PyInt_FromLong(entry.Location);
+    return PyLong_FromLong(entry.Location);
 }
 
 /***********/
@@ -3907,7 +3907,7 @@ StateMachine_AddToDo(StateMachineObject *self, PyObject *args, PyObject *kwds) {
 
     if (!checkError(self->s, error, "AddToDo")) return NULL;
 
-    return PyInt_FromLong(entry.Location);
+    return PyLong_FromLong(entry.Location);
 }
 
 /**************/
@@ -4104,7 +4104,7 @@ StateMachine_SetCalendar(StateMachineObject *self, PyObject *args, PyObject *kwd
 
     if (!checkError(self->s, error, "SetCalendar")) return NULL;
 
-    return PyInt_FromLong(entry.Location);
+    return PyLong_FromLong(entry.Location);
 }
 
 /***************/
@@ -4166,7 +4166,7 @@ StateMachine_AddCalendar(StateMachineObject *self, PyObject *args, PyObject *kwd
 
     if (!checkError(self->s, error, "AddCalendar")) return NULL;
 
-    return PyInt_FromLong(entry.Location);
+    return PyLong_FromLong(entry.Location);
 }
 
 /******************/
@@ -4636,7 +4636,7 @@ StateMachine_GetFilePart(StateMachineObject *self, PyObject *args, PyObject *kwd
 
     if (result == NULL) return NULL;
 
-    value = PyInt_FromLong(size);
+    value = PyLong_FromLong(size);
     if (value == NULL) {
         Py_DECREF(result);
         return NULL;
@@ -4644,7 +4644,7 @@ StateMachine_GetFilePart(StateMachineObject *self, PyObject *args, PyObject *kwd
     PyDict_SetItemString(result, "Size", value);
     Py_DECREF(value);
 
-    value = PyInt_FromLong(handle);
+    value = PyLong_FromLong(handle);
     if (value == NULL) {
         Py_DECREF(result);
         return NULL;
@@ -4711,7 +4711,7 @@ StateMachine_AddFilePart(StateMachineObject *self, PyObject *args, PyObject *kwd
 
     if (result == NULL) return NULL;
 
-    value = PyInt_FromLong(pos);
+    value = PyLong_FromLong(pos);
     if (value == NULL) {
         Py_DECREF(result);
         return NULL;
@@ -4719,7 +4719,7 @@ StateMachine_AddFilePart(StateMachineObject *self, PyObject *args, PyObject *kwd
     PyDict_SetItemString(result, "Pos", value);
     Py_DECREF(value);
 
-    value = PyInt_FromLong(handle);
+    value = PyLong_FromLong(handle);
     if (value == NULL) {
         Py_DECREF(result);
         return NULL;
@@ -4786,7 +4786,7 @@ StateMachine_SendFilePart(StateMachineObject *self, PyObject *args, PyObject *kw
 
     if (result == NULL) return NULL;
 
-    value = PyInt_FromLong(pos);
+    value = PyLong_FromLong(pos);
     if (value == NULL) {
         Py_DECREF(result);
         return NULL;
@@ -4794,7 +4794,7 @@ StateMachine_SendFilePart(StateMachineObject *self, PyObject *args, PyObject *kw
     PyDict_SetItemString(result, "Pos", value);
     Py_DECREF(value);
 
-    value = PyInt_FromLong(handle);
+    value = PyLong_FromLong(handle);
     if (value == NULL) {
         Py_DECREF(result);
         return NULL;
@@ -5054,8 +5054,8 @@ StateMachine_SetDebugFile(StateMachineObject *self, PyObject *args, PyObject *kw
 
         error = GSM_SetDebugFileDescriptor(f, FALSE, di);
         if (!checkError(NULL, error, "SetDebugFileDescriptor")) return NULL;
-    } else if (PyString_Check(value)) {
-        s = PyString_AsString(value);
+    } else if (PyBytes_Check(value)) {
+        s = PyBytes_AsString(value);
         if (s == NULL) return NULL;
         error = GSM_SetDebugFile(s, di);
         if (!checkError(NULL, error, "SetDebugFile")) return NULL;
@@ -5525,12 +5525,12 @@ gammu_SetDebugFile(PyObject *self, PyObject *args, PyObject *kwds)
         Py_INCREF(DebugFile);
         error = GSM_SetDebugFileDescriptor(f, FALSE, GSM_GetGlobalDebug());
         if (!checkError(NULL, error, "SetDebugFileDescriptor")) return NULL;
-    } else if (PyString_Check(value)) {
+    } else if (PyBytes_Check(value)) {
         if (DebugFile != NULL) {
             Py_DECREF(DebugFile);
             DebugFile = NULL;
         }
-        s = PyString_AsString(value);
+        s = PyBytes_AsString(value);
         if (s == NULL) return NULL;
         error = GSM_SetDebugFile(s, GSM_GetGlobalDebug());
         if (!checkError(NULL, error, "SetDebugFile")) return NULL;
@@ -5764,7 +5764,7 @@ gammu_EncodeVCARD(PyObject *self, PyObject *args, PyObject *kwds)
     error = GSM_EncodeVCARD(GSM_GetGlobalDebug(), buffer, sizeof(buffer), &pos, &entry, TRUE, SonyEricsson_VCard21);
     if (!checkError(NULL, error, "EncodeVCARD")) return NULL;
 
-    return PyString_FromString(buffer);
+    return PyBytes_FromString(buffer);
 }
 
 static char gammu_DecodeVCS__doc__[] =
@@ -5867,7 +5867,7 @@ gammu_EncodeVCALENDAR(PyObject *self, PyObject *args, PyObject *kwds)
     error = GSM_EncodeVCALENDAR(buffer, sizeof(buffer), &pos, &entry, TRUE, SonyEricsson_VCalendar);
     if (!checkError(NULL, error, "EncodeVCALENDAR")) return NULL;
 
-    return PyString_FromString(buffer);
+    return PyBytes_FromString(buffer);
 }
 
 static char gammu_EncodeICALENDAR__doc__[] =
@@ -5898,7 +5898,7 @@ gammu_EncodeICALENDAR(PyObject *self, PyObject *args, PyObject *kwds)
     error = GSM_EncodeVCALENDAR(buffer, sizeof(buffer), &pos, &entry, TRUE, Mozilla_iCalendar);
     if (!checkError(NULL, error, "EncodeICALENDAR")) return NULL;
 
-    return PyString_FromString(buffer);
+    return PyBytes_FromString(buffer);
 }
 
 static char gammu_EncodeVTODO__doc__[] =
@@ -5929,7 +5929,7 @@ gammu_EncodeVTODO(PyObject *self, PyObject *args, PyObject *kwds)
     error = GSM_EncodeVTODO(buffer, sizeof(buffer), &pos, &entry, TRUE, SonyEricsson_VToDo);
     if (!checkError(NULL, error, "EncodeVTODO")) return NULL;
 
-    return PyString_FromString(buffer);
+    return PyBytes_FromString(buffer);
 }
 
 static char gammu_EncodeITODO__doc__[] =
@@ -5960,7 +5960,7 @@ gammu_EncodeITODO(PyObject *self, PyObject *args, PyObject *kwds)
     error = GSM_EncodeVTODO(buffer, sizeof(buffer), &pos, &entry, TRUE, Mozilla_VToDo);
     if (!checkError(NULL, error, "EncodeITODO")) return NULL;
 
-    return PyString_FromString(buffer);
+    return PyBytes_FromString(buffer);
 }
 
 static char gammu_SaveRingtone__doc__[] =
@@ -5999,8 +5999,8 @@ gammu_SaveRingtone(PyObject *self, PyObject *args, PyObject *kwds)
     if (PyFile_Check(file)) {
         f = PyFile_AsFile(file);
         if (f == NULL) return NULL;
-    } else if (PyString_Check(file)) {
-        name = PyString_AsString(file);
+    } else if (PyBytes_Check(file)) {
+        name = PyBytes_AsString(file);
         if (name == NULL) return NULL;
         f = fopen(name, "wb");
         if (f == NULL) {
@@ -6232,7 +6232,7 @@ gammu_SMSCounter(PyObject *self, PyObject *args, PyObject *kwds)
                 &o, &udh_s, &coding_s))
         return NULL;
 
-    if (!PyString_Check(o) && !PyUnicode_Check(o)) {
+    if (!PyBytes_Check(o) && !PyUnicode_Check(o)) {
         PyErr_Format(PyExc_ValueError, "Text not string nor unicode!");
         return NULL;
     }
@@ -6395,7 +6395,7 @@ gammu_EncodePDU(PyObject *self, PyObject *args, PyObject *kwds)
         req[current+1]='\0';
     }
 
-    return PyString_FromStringAndSize(req, current);
+    return PyBytes_FromStringAndSize(req, current);
 }
 
 /* List of methods defined in the module */

@@ -106,6 +106,9 @@ while [ "$#" -gt 0 ] ; do
         --without-completion)
             CMAKE_COMPLETE="-DINSTALL_BASH_COMPLETION=OFF"
             ;;
+        --without-python)
+            CMAKE_COMPLETE="-DBUILD_PYTHON=OFF"
+            ;;
         --build=*)
             ;;
         --disable-dependency-tracking)

@@ -212,12 +212,12 @@ int BitmapFromPython(PyObject * dict, GSM_Bitmap * entry)
 	}
 #define GetString(s, x) \
     item = PyList_GetItem(o, x);\
-    if (!PyString_Check(item)) {\
+    if (!PyBytes_Check(item)) {\
         PyErr_Format(PyExc_ValueError, "XPM contains something different than string!");\
         return 0;\
     }\
 \
-    s = PyString_AsString(item);\
+    s = PyBytes_AsString(item);\
     if (s == NULL) {\
         PyErr_Format(PyExc_ValueError, "XPM contains something different than string!");\
         return 0;\
@@ -330,7 +330,7 @@ PyObject *BitmapToPython(GSM_Bitmap * bitmap)
 
 	snprintf(buffer, 99, "%i %i 2 1", (int)bitmap->BitmapWidth,
 		 (int)bitmap->BitmapHeight);
-	s = PyString_FromString(buffer);
+	s = PyBytes_FromString(buffer);
 	if (s == NULL)
 		return NULL;
 	if (PyList_Append(xpmval, s) != 0) {
@@ -340,7 +340,7 @@ PyObject *BitmapToPython(GSM_Bitmap * bitmap)
 	}
 	Py_DECREF(s);
 
-	s = PyString_FromString("# c Black");
+	s = PyBytes_FromString("# c Black");
 	if (s == NULL)
 		return NULL;
 	if (PyList_Append(xpmval, s) != 0) {
@@ -350,7 +350,7 @@ PyObject *BitmapToPython(GSM_Bitmap * bitmap)
 	}
 	Py_DECREF(s);
 
-	s = PyString_FromString("  c None");
+	s = PyBytes_FromString("  c None");
 	if (s == NULL)
 		return NULL;
 	if (PyList_Append(xpmval, s) != 0) {
@@ -366,7 +366,7 @@ PyObject *BitmapToPython(GSM_Bitmap * bitmap)
 		for (x = 0; x < bitmap->BitmapWidth; x++) {
 			buffer[x] = GSM_IsPointBitmap(bitmap, x, y) ? '#' : ' ';
 		}
-		s = PyString_FromString(buffer);
+		s = PyBytes_FromString(buffer);
 		if (s == NULL)
 			return NULL;
 		if (PyList_Append(xpmval, s) != 0) {

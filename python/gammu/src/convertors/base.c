@@ -35,15 +35,15 @@ gboolean BoolFromPython(PyObject * o, const char *key)
 	}
 
 	if (!PyBool_Check(o)) {
-		if (PyInt_Check(o)) {
-			i = PyInt_AsLong(o);
+		if (PyLong_Check(o)) {
+			i = PyLong_AsLong(o);
 			if (i == 0)
 				return FALSE;
 			else
 				return TRUE;
 		}
-		if (PyString_Check(o)) {
-			s = PyString_AsString(o);
+		if (PyBytes_Check(o)) {
+			s = PyBytes_AsString(o);
 			if (isdigit((int)s[0])) {
 				i = atoi(s);
 				if (i == 0)
@@ -113,12 +113,12 @@ int GetIntFromDict(PyObject * dict, const char *key)
 		return PyLong_AsLongLong(o);
 	}
 
-	if (PyInt_Check(o)) {
-		return PyInt_AsLong(o);
+	if (PyLong_Check(o)) {
+		return PyLong_AsLong(o);
 	}
 
-	if (PyString_Check(o)) {
-		s = PyString_AsString(o);
+	if (PyBytes_Check(o)) {
+		s = PyBytes_AsString(o);
 		if (isdigit((int)s[0])) {
 			i = atoi(s);
 			return i;
@@ -147,7 +147,7 @@ char *GetCStringLengthFromDict(PyObject * dict, const char *key,
 			     key);
 		return NULL;
 	}
-	PyString_AsStringAndSize(o, &data, length);
+	PyBytes_AsStringAndSize(o, &data, length);
 	result = (char *)malloc(*length);
 	if (result == NULL) {
 		PyErr_Format(PyExc_ValueError, "Failed to allocate memory!");
@@ -169,7 +169,7 @@ char *GetCStringFromDict(PyObject * dict, const char *key)
 		return NULL;
 	}
 
-	return PyString_AsString(o);
+	return PyBytes_AsString(o);
 }
 
 unsigned char *GetStringFromDict(PyObject * dict, const char *key)
@@ -260,7 +260,7 @@ char *GetCharFromDict(PyObject * dict, const char *key)
 		return NULL;
 	}
 
-	ps = PyString_AsString(o);
+	ps = PyBytes_AsString(o);
 	if (ps == NULL) {
 		PyErr_Format(PyExc_ValueError,
 			     "Can not get string value for key %s", key);
@@ -280,7 +280,7 @@ char *GetDataFromDict(PyObject * dict, const char *key, Py_ssize_t * len)
 			     key);
 		return NULL;
 	}
-	if (PyString_AsStringAndSize(o, &ps, len) != 0) {
+	if (PyBytes_AsStringAndSize(o, &ps, len) != 0) {
 		PyErr_Format(PyExc_ValueError,
 			     "Can not get string value for key %s", key);
 		return NULL;

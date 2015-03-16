@@ -144,7 +144,7 @@ PyObject *FileToPython(GSM_File * file)
 		return NULL;
 	}
 
-	buffer = PyString_FromStringAndSize((char *)file->Buffer, file->Used);
+	buffer = PyBytes_FromStringAndSize((char *)file->Buffer, file->Used);
 	if (buffer == NULL) {
 		Py_DECREF(name);
 		free(type);
