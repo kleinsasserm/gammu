@@ -5346,7 +5346,8 @@ StateMachine_dealloc(StateMachineObject *self)
 #ifdef WITH_THREAD
     PyThread_free_lock(self->mutex);
 #endif
-    self->ob_type->tp_free((PyObject*)self);
+    //self->ob_type->tp_free((PyObject*)self);
+    Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static PyObject *

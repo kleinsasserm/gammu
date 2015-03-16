@@ -27,7 +27,7 @@ this program; if not, write to the Free Software Foundation, Inc.,
 
 import gammu
 import threading
-import Queue
+import queue
 
 
 class InvalidCommand(Exception):
@@ -194,7 +194,7 @@ class GammuThread(threading.Thread):
                 result = func(**params)
             else:
                 result = func(*params)
-        except gammu.GSMError, info:
+        except gammu.GSMError as info:
             errcode = info[0]['Code']
             error = gammu.ErrorNumbers[errcode]
 
@@ -233,7 +233,7 @@ class GammuThread(threading.Thread):
                     except ValueError:
                         # This works since python 2.5
                         pass
-            except Queue.Empty:
+            except queue.Empty:
                 if self._terminate:
                     break
                 # Read the device to catch possible incoming events
@@ -270,7 +270,7 @@ class GammuWorker:
         self._callback = callback
         self._config = {}
         self._lock = threading.Lock()
-        self._queue = Queue.Queue()
+        self._queue = queue.Queue()
 
     def enqueue_command(self, command, params):
         '''

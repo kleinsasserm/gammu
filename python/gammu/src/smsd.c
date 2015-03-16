@@ -198,7 +198,7 @@ static PyObject *SMSD_str(SMSDObject * self)
 static void SMSD_dealloc(SMSDObject * self)
 {
 	SMSD_FreeConfig(self->config);
-	self->ob_type->tp_free((PyObject *) self);
+	Py_TYPE(self)->tp_free((PyObject *) self);
 }
 
 static PyObject *SMSD_new(PyTypeObject * type, PyObject * args, PyObject * kwds)

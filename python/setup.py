@@ -31,13 +31,15 @@ import distutils.command.build_ext
 import distutils.command.install
 import distutils.command.bdist_wininst
 from distutils.core import setup, Extension
-from commands import getstatusoutput
+from subprocess import getstatusoutput
 import sys
 import os
 import os.path
 import re
 import datetime
 import string
+
+os.environ["CFLAGS"] = '-w'
 
 # some defines
 VERSION = '1.35.90'
@@ -53,6 +55,7 @@ ADDITIONAL_PARAMS = [
         ('gammu-incs=', None, 'path to gammu.h include'),
         ('gammu-cfg=', None, 'path to gammu-config.h include'),
         ('gammu-build=', None, 'path where gammu library has been built'),
+        ('extra_compile_args=', '-w', 'supress warnings gcc')
         ]
 
 class build_ext_gammu(distutils.command.build_ext.build_ext, object):
@@ -67,7 +70,7 @@ class build_ext_gammu(distutils.command.build_ext.build_ext, object):
         super(build_ext_gammu, self).initialize_options()
         self.skip_deps = False
         self.pkgconfig = 'pkg-config'
-        self.pkgconfig_search_path = None
+        self.pkgconfig_search_path = '/opt/gammu3/lib64/pkgconfig'
         self.gammu_libs = None
         self.gammu_incs = None
         self.gammu_cfg = None
@@ -84,12 +87,12 @@ class build_ext_gammu(distutils.command.build_ext.build_ext, object):
         if output[0] != 0:
             if self.pkgconfig_search_path is None:
                 self.pkgconfig_search_path = '/usr/local/lib/pkgconfig'
-                print 'Package %s not found, adding %s to pkg-config search path' % \
-                    (name, self.pkgconfig_search_path)
+                print('Package %s not found, adding %s to pkg-config search path' % \
+                    (name, self.pkgconfig_search_path))
                 output = self.do_pkgconfig('--exists %s' % name)
         if output[0] == 0:
             return True
-        print 'ERROR: Could not find package %s!' % name
+        print('ERROR: Could not find package %s!' % name)
         return False
 
     def check_version(self, name, version):
@@ -98,9 +101,9 @@ class build_ext_gammu(distutils.command.build_ext.build_ext, object):
         pkc_version = tuple(map(int, output[1].split('.')))
         if pkc_version >= version:
             return True
-        print 'ERROR: Package %s is too old!' % name
-        print '       You need version %s, but %s is installed' % \
-              ('.'.join(map(str, version)), '.'.join(map(str, pkc_version)))
+        print('ERROR: Package %s is too old!' % name)
+        print('       You need version %s, but %s is installed' % \
+              ('.'.join(map(str, version)), '.'.join(map(str, pkc_version))))
         return False
 
     def get_pkg_include_dirs(self, name):
@@ -124,21 +127,21 @@ class build_ext_gammu(distutils.command.build_ext.build_ext, object):
     def check_pkgconfig(self):
         res = self.do_pkgconfig('--version')
         if res[0] != 0:
-            print "ERROR: Could not find pkg-config!"
+            print("ERROR: Could not find pkg-config!")
             sys.exit(1)
 
     def check_gammu(self):
         if not self.pkg_exists('gammu') or not self.check_version('gammu', GAMMU_REQUIRED):
-            print '\nYou need installed gammu and enabled pkg-config to find it.'
-            print
-            print 'This is done by invoking make install in gammu sources.'
-            print
-            print 'If package was installed to other prefix, please use'
-            print '--pkgconfig-search-path=<install_prefix>/lib/pkgconfig'
-            print
-            print 'If you get this error when invoking setup.py install, you can'
-            print 'try to ignore this with --skip-deps'
-            print
+            print('\nYou need installed gammu and enabled pkg-config to find it.')
+            print()
+            print('This is done by invoking make install in gammu sources.')
+            print()
+            print('If package was installed to other prefix, please use')
+            print('--pkgconfig-search-path=<install_prefix>/lib/pkgconfig')
+            print()
+            print('If you get this error when invoking setup.py install, you can')
+            print('try to ignore this with --skip-deps')
+            print()
             sys.exit(1)
 
     def read_gammu_version(self, path):
@@ -168,24 +171,24 @@ class build_ext_gammu(distutils.command.build_ext.build_ext, object):
             found = self.read_gammu_version(os.path.join(self.gammu_incs, '..', 'cfg'))
 
         if found == None:
-            print 'WARNING: Can not read version from gammu-config.h!'
+            print('WARNING: Can not read version from gammu-config.h!')
             self.gammu_incs = None
             return False
 
         found = found.groups()
 
         if len(found) != 1:
-            print 'WARNING: Can not read version from gammu-config.h!'
+            print('WARNING: Can not read version from gammu-config.h!')
             self.gammu_incs = None
             return False
 
         cfg_version = tuple(map(int, found[0].split('.')))
 
         if cfg_version < GAMMU_REQUIRED:
-            print "ERROR: Too old version of Gammu"
-            print "       Need %s, but %s is installed" % \
+            print("ERROR: Too old version of Gammu")
+            print("       Need %s, but %s is installed" % \
                   ('.'.join(map(str, GAMMU_REQUIRED)),
-                  ('.'.join(map(str, cfg_version))))
+                  ('.'.join(map(str, cfg_version)))))
             sys.exit(1)
 
         return True
@@ -214,7 +217,7 @@ class build_ext_gammu(distutils.command.build_ext.build_ext, object):
 
     def check_requirements(self):
         if sys.version_info < PYTHON_REQUIRED:
-            print 'You need python %s to compile this!' % '.'.join(map(str, PYTHON_REQUIRED))
+            print('You need python %s to compile this!' % '.'.join(map(str, PYTHON_REQUIRED)))
             sys.exit(1)
 
         if self.gammu_build is not None:
@@ -222,7 +225,7 @@ class build_ext_gammu(distutils.command.build_ext.build_ext, object):
 
         if self.gammu_incs is not None:
             if not self.check_includedir():
-                print "ERROR: Could not determine gammu sources version!"
+                print("ERROR: Could not determine gammu sources version!")
                 sys.exit(1)
 
         if self.gammu_libs is not None:
