@@ -6488,15 +6488,24 @@ static char gammu_module_documentation[] =
 "@var ErrorNumbers: Mapping of gammu error codes to text representation. Reverse to L{Errors}.\n"
 ;
 
+static struct PyModuleDef gammumodule = {
+    PyModuleDef_HEAD_INIT,
+    "_gammu",
+    gammu_module_documentation,
+    -1,
+    gammu_methods
+};
+
 #ifndef PyMODINIT_FUNC  /* doesn't exists in older python releases */
 #define PyMODINIT_FUNC void
 #endif
-PyMODINIT_FUNC PyInit_gammu(void) {
+PyMODINIT_FUNC PyInit__gammu(void) {
     PyObject *m, *d;
     GSM_Debug_Info *di;
 
     /* Create the module and add the functions */
-    m = Py_InitModule3("_gammu", gammu_methods, gammu_module_documentation);
+    // m = Py_InitModule3("_gammu", gammu_methods, gammu_module_documentation);
+    m = PyModule_Create(&gammumodule);
 
     if (m == NULL)
         return NULL;
