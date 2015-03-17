@@ -6491,8 +6491,7 @@ static char gammu_module_documentation[] =
 #ifndef PyMODINIT_FUNC  /* doesn't exists in older python releases */
 #define PyMODINIT_FUNC void
 #endif
-// PyMODINIT_FUNC init_gammu(void) {
-void init_gammu(void) {
+PyMODINIT_FUNC PyInit_gammu(void) {
     PyObject *m, *d;
     GSM_Debug_Info *di;
 
@@ -6500,29 +6499,29 @@ void init_gammu(void) {
     m = Py_InitModule3("_gammu", gammu_methods, gammu_module_documentation);
 
     if (m == NULL)
-        return;
+        return NULL;
 
     DebugFile = NULL;
 
     d = PyModule_GetDict(m);
 
     if (PyType_Ready(&StateMachineType) < 0)
-        return;
+        return NULL;
     Py_INCREF(&StateMachineType);
 
     if (PyModule_AddObject(m, "StateMachine", (PyObject *)&StateMachineType) < 0)
-        return;
+        return NULL;
 
     /* SMSD object */
-    if (!gammu_smsd_init(m)) return;
+    if (!gammu_smsd_init(m)) return NULL;
 
     /* Add some symbolic constants to the module */
 
     /* Define errors */
-    if (!gammu_create_errors(d)) return;
+    if (!gammu_create_errors(d)) return NULL;
 
     /* Define data */
-    if (!gammu_create_data(d)) return;
+    if (!gammu_create_data(d)) return NULL;
 
     /* Check for errors */
     if (PyErr_Occurred()) {
@@ -6534,6 +6533,8 @@ void init_gammu(void) {
     di = GSM_GetGlobalDebug();
     GSM_SetDebugFileDescriptor(NULL, FALSE, di);
     GSM_SetDebugLevel("none", di);
+
+    return m;
 }
 /*
  * vim: expandtab sw=4 ts=4 sts=4:
