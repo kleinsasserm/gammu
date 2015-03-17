@@ -28,12 +28,14 @@ unsigned char *StringPythonToGammu(PyObject * o)
 	Py_UNICODE *ps;
 	unsigned char *gs;
 
+	/*
 	u = PyObject_Unicode(o);
 	if (u == NULL) {
 		PyErr_Format(PyExc_ValueError,
 			     "Value can not be converted to unicode object");
 		return NULL;
 	}
+	*/
 
 	ps = PyUnicode_AsUnicode(u);
 	if (ps == NULL) {

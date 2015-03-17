@@ -126,6 +126,32 @@ static void SendSMSStatus (GSM_StateMachine *s, int status, int mr, void *user) 
 }
 
 /**
+ * Function to pull out file pointer of PyObject
+ */
+static FILE* streamFromPyFile( PyObject* file )
+{
+    int fd;
+    FILE* fs;
+
+    fd = PyObject_AsFileDescriptor(file);
+    if (fd < 0)
+        return NULL;
+
+    fd = dup(fd);
+    if (fd < 0)
+        return NULL;
+
+    fs = fdopen(fd, "w");
+    if (fs == NULL)
+    {
+        close(fd);
+        return NULL;
+    }
+    return fs;
+}
+
+
+/**
  * Incoming call callback.
  */
 static void IncomingCall (GSM_StateMachine *s, GSM_Call *call, void *user) {
@@ -5022,6 +5048,7 @@ static char StateMachine_SetDebugFile__doc__[] =
 static PyObject *
 StateMachine_SetDebugFile(StateMachineObject *self, PyObject *args, PyObject *kwds)
 {
+    extern PyTypeObject PyIOBase_Type;
     PyObject            *value;
     char                *s;
     int                 global = 0;
@@ -5046,8 +5073,10 @@ StateMachine_SetDebugFile(StateMachineObject *self, PyObject *args, PyObject *kw
     if (value == Py_None) {
         error = GSM_SetDebugFileDescriptor(NULL, TRUE, di);
         if (!checkError(NULL, error, "SetDebugFileDescriptor")) return NULL;
-    } else if (PyFile_Check(value)) {
-        f = PyFile_AsFile(value);
+    //} else if (PyFile_Check(value)) {
+    } else if (PyObject_IsInstance(value, (PyObject *)&PyIOBase_Type)) {
+        // f = PyFile_AsFile(value);
+        f = streamFromPyFile(value);
         if (f == NULL) return NULL;
         self->DebugFile = value;
         Py_INCREF(value);
@@ -5498,6 +5527,7 @@ static char gammu_SetDebugFile__doc__[] =
 static PyObject *
 gammu_SetDebugFile(PyObject *self, PyObject *args, PyObject *kwds)
 {
+    extern PyTypeObject PyIOBase_Type;
     PyObject            *value;
     char                *s;
     FILE                *f;
@@ -5514,12 +5544,14 @@ gammu_SetDebugFile(PyObject *self, PyObject *args, PyObject *kwds)
         }
         error = GSM_SetDebugFileDescriptor(NULL, FALSE, GSM_GetGlobalDebug());
         if (!checkError(NULL, error, "SetDebugFileDescriptor")) return NULL;
-    } else if (PyFile_Check(value)) {
+    // } else if (PyFile_Check(value)) {
+    } else if (PyObject_IsInstance(value, (PyObject *)&PyIOBase_Type)) {
         if (DebugFile != NULL) {
             Py_DECREF(DebugFile);
             DebugFile = NULL;
         }
-        f = PyFile_AsFile(value);
+        // f = PyFile_AsFile(value);
+        f = streamFromPyFile(value);
         if (f == NULL) return NULL;
         DebugFile = value;
         Py_INCREF(DebugFile);
@@ -5979,6 +6011,7 @@ static char gammu_SaveRingtone__doc__[] =
 static PyObject *
 gammu_SaveRingtone(PyObject *self, PyObject *args, PyObject *kwds)
 {
+    extern PyTypeObject PyIOBase_Type;
     static char                 *kwlist[] = {"Filename", "Ringtone", "Format", NULL};
     PyObject                    *value;
     PyObject                    *file;
@@ -5996,8 +6029,10 @@ gammu_SaveRingtone(PyObject *self, PyObject *args, PyObject *kwds)
         return NULL;
     }
 
-    if (PyFile_Check(file)) {
-        f = PyFile_AsFile(file);
+    // if (PyFile_Check(file)) {
+    if (PyObject_IsInstance(file, (PyObject *)&PyIOBase_Type)){
+        // f = PyFile_AsFile(file);
+        f = streamFromPyFile(file);
         if (f == NULL) return NULL;
     } else if (PyBytes_Check(file)) {
         name = PyBytes_AsString(file);
