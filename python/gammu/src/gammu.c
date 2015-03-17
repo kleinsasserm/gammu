@@ -5432,8 +5432,9 @@ static char StateMachineType__doc__[] =
 ;
 
 static PyTypeObject StateMachineType = {
-    PyObject_HEAD_INIT(NULL)
-    0,				/*ob_size*/
+    // PyObject_HEAD_INIT(NULL)
+    PyVarObject_HEAD_INIT(NULL, 0)
+    // 0,				/*ob_size*/
     "_gammu.StateMachine",			/*tp_name*/
     sizeof(StateMachineObject),		/*tp_basicsize*/
     0,				/*tp_itemsize*/
@@ -6490,7 +6491,8 @@ static char gammu_module_documentation[] =
 #ifndef PyMODINIT_FUNC  /* doesn't exists in older python releases */
 #define PyMODINIT_FUNC void
 #endif
-PyMODINIT_FUNC init_gammu(void) {
+// PyMODINIT_FUNC init_gammu(void) {
+void init_gammu(void) {
     PyObject *m, *d;
     GSM_Debug_Info *di;
 
