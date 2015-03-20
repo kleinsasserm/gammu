@@ -37,6 +37,8 @@ int checkError(GSM_StateMachine *s, GSM_Error error, const char *where) {
         err = gammu_error_map[error];
 
     msg = GSM_ErrorString(error);
+        
+    PyErr_SetString(PyExc_IOError, msg);
 
     text = LocaleStringToPython(msg);
     if (text == NULL) {

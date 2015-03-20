@@ -47,6 +47,9 @@
 /* Other useful stuff */
 #include "misc.h"
 
+/* Other useful stuff */
+#include "stdio.h"
+
 /* Length of buffers used in most of code */
 #define BUFFER_LENGTH 255
 
@@ -239,47 +242,91 @@ static char StateMachine_ReadConfig__doc__[] =
 static PyObject *
 StateMachine_ReadConfig(StateMachineObject *self, PyObject *args, PyObject *kwds)
 {
-    //GSM_Error       error;
-    //int             section = 0;
-    //int             dst = -1;
-    //INI_Section     *cfg;
-    //char            *cfg_path = NULL;
-    //GSM_Config *Config;
+    GSM_Error       error;
+    int             section = 0;
+    int             dst = -1;
+    INI_Section     *cfg;
+    char            *cfg_path = NULL;
+    GSM_Config *Config;
 
-    //static char         *kwlist[] = {"Section", "Configuration", "Filename", NULL};
+    static char         *kwlist[] = {"Section", "Configuration", "Filename", NULL};
 
-    //if (!PyArg_ParseTupleAndKeywords(args, kwds, "|IIs", kwlist, &section, &dst, &cfg_path))
-    //    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|IIs", kwlist, &section, &dst, &cfg_path))
+        return NULL;
 
-    //if (dst == -1) dst = section;
-    //Config = GSM_GetConfig(self->s, dst);
-    //if (Config == NULL) {
-    //    PyErr_Format(PyExc_ValueError, "Maximal configuration storage exceeded");
-    //    return NULL;
-    //}
+    if (dst == -1) dst = section;
+    Config = GSM_GetConfig(self->s, dst);
+    if (Config == NULL) {
+        PyErr_Format(PyExc_ValueError, "Maximal configuration storage exceeded");
+        return NULL;
+    }
 
-    //error = GSM_FindGammuRC(&cfg, cfg_path);
-    //if (!checkError(self->s, error, "FindGammuRC via ReadConfig"))
-    //    return NULL;
-    //if (cfg == NULL) {
-    //    PyErr_SetString(PyExc_IOError, "Can not read gammurc");
-    //    return NULL;
-    //}
+    error = GSM_FindGammuRC(&cfg, cfg_path);
+    if (!checkError(self->s, error, "FindGammuRC via ReadConfig")) {
+        PyErr_SetString(PyExc_IOError, "gammurc configuration file not found");
+        return NULL;
+    }
 
-    //error = GSM_ReadConfig(cfg, Config, section);
-    //if (!checkError(self->s, error, "ReadConfig")) {
-    //    INI_Free(cfg);
-    //    return NULL;
-    //}
-    //Config->UseGlobalDebugFile = FALSE;
+    if (cfg == NULL) {
+        PyErr_SetString(PyExc_IOError, "Can not read gammurc");
+        return NULL;
+    }
 
-    ///* Tell Gammu we have configured another section */
-    //GSM_SetConfigNum(self->s, dst + 1);
+    error = GSM_ReadConfig(cfg, Config, section);
+    if (!checkError(self->s, error, "ReadConfig")) {
+        INI_Free(cfg);
+        return NULL;
+    }
+    Config->UseGlobalDebugFile = FALSE;
+    
 
-    //INI_Free(cfg);
+    /* Tell Gammu we have configured another section */
+    GSM_SetConfigNum(self->s, dst + 1);
 
-    //Py_RETURN_NONE;
-    return NULL;
+    INI_Free(cfg);
+
+    Py_RETURN_NONE;
+}
+
+static char StateMachine_Init__doc__[] =
+"Init(Replies)\n\n"
+"Initialises the connection with phone.\n\n"
+"@param Replies: Number of replies to wait for on each request. Defaults to 1.\n"
+"@type Replies: int\n"
+"@return: None\n"
+"@rtype: None\n"
+;
+
+static PyObject *
+StateMachine_Init(StateMachineObject *self, PyObject *args, PyObject *kwds)
+{
+    GSM_Error           error;
+    int                 replies = 1;
+    static char         *kwlist[] = {"Replies", NULL};
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|I", kwlist, &replies))
+        return NULL;
+
+    BEGIN_PHONE_COMM
+    error = GSM_InitConnection(self->s, replies);
+    END_PHONE_COMM
+    if (!checkError(self->s, error, "Init"))
+        return NULL;
+
+    /* Set callbacks */
+    GSM_SetIncomingCallCallback(self->s, IncomingCall, self);
+    GSM_SetIncomingSMSCallback(self->s, IncomingSMS, self);
+    GSM_SetIncomingCBCallback(self->s, IncomingCB, self);
+    GSM_SetIncomingUSSDCallback(self->s, IncomingUSSD, self);
+    GSM_SetSendSMSStatusCallback(self->s, SendSMSStatus, self);
+
+    /* No cached data */
+    self->memory_entry_cache_type = 0;
+    self->memory_entry_cache = 1;
+    self->todo_entry_cache = 1;
+    self->calendar_entry_cache = 1;
+
+    Py_RETURN_NONE;
 }
 
 static char StateMachineType__doc__[] =
@@ -294,7 +341,7 @@ static struct PyMethodDef StateMachine_methods[] = {
     {"ReadConfig",	(PyCFunction)StateMachine_ReadConfig,	METH_VARARGS|METH_KEYWORDS,	StateMachine_ReadConfig__doc__},
 //    {"SetConfig",	(PyCFunction)StateMachine_SetConfig,	METH_VARARGS|METH_KEYWORDS,	StateMachine_SetConfig__doc__},
 //    {"GetConfig",	(PyCFunction)StateMachine_GetConfig,	METH_VARARGS|METH_KEYWORDS,	StateMachine_GetConfig__doc__},
-//    {"Init",	(PyCFunction)StateMachine_Init,	METH_VARARGS|METH_KEYWORDS,	StateMachine_Init__doc__},
+    {"Init",	(PyCFunction)StateMachine_Init,	METH_VARARGS|METH_KEYWORDS,	StateMachine_Init__doc__},
 //    {"Terminate",	(PyCFunction)StateMachine_Terminate,	METH_VARARGS|METH_KEYWORDS,	StateMachine_Terminate__doc__},
 //    {"Abort",	(PyCFunction)StateMachine_Abort,	METH_VARARGS|METH_KEYWORDS,	StateMachine_Abort__doc__},
 //    {"ReadDevice",	(PyCFunction)StateMachine_ReadDevice,	METH_VARARGS|METH_KEYWORDS,	StateMachine_ReadDevice__doc__},
@@ -569,7 +616,7 @@ PyMODINIT_FUNC PyInit__gammu(void) {
         return NULL;
 
     /* SMSD object */
-    //if (!gammu_smsd_init(m)) return NULL;
+    if (!gammu_smsd_init(m)) return NULL;
 
     /* Add some symbolic constants to the module */
 

@@ -629,46 +629,46 @@ StateMachine_SetConfig(StateMachineObject *self, PyObject *args, PyObject *kwds)
 //}
 
 
-static char StateMachine_Init__doc__[] =
-"Init(Replies)\n\n"
-"Initialises the connection with phone.\n\n"
-"@param Replies: Number of replies to wait for on each request. Defaults to 1.\n"
-"@type Replies: int\n"
-"@return: None\n"
-"@rtype: None\n"
-;
-
-static PyObject *
-StateMachine_Init(StateMachineObject *self, PyObject *args, PyObject *kwds)
-{
-    GSM_Error           error;
-    int                 replies = 1;
-    static char         *kwlist[] = {"Replies", NULL};
-
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|I", kwlist, &replies))
-        return NULL;
-
-    BEGIN_PHONE_COMM
-    error = GSM_InitConnection(self->s, replies);
-    END_PHONE_COMM
-    if (!checkError(self->s, error, "Init"))
-        return NULL;
-
-    /* Set callbacks */
-    GSM_SetIncomingCallCallback(self->s, IncomingCall, self);
-    GSM_SetIncomingSMSCallback(self->s, IncomingSMS, self);
-    GSM_SetIncomingCBCallback(self->s, IncomingCB, self);
-    GSM_SetIncomingUSSDCallback(self->s, IncomingUSSD, self);
-    GSM_SetSendSMSStatusCallback(self->s, SendSMSStatus, self);
-
-    /* No cached data */
-    self->memory_entry_cache_type = 0;
-    self->memory_entry_cache = 1;
-    self->todo_entry_cache = 1;
-    self->calendar_entry_cache = 1;
-
-    Py_RETURN_NONE;
-}
+//static char StateMachine_Init__doc__[] =
+//"Init(Replies)\n\n"
+//"Initialises the connection with phone.\n\n"
+//"@param Replies: Number of replies to wait for on each request. Defaults to 1.\n"
+//"@type Replies: int\n"
+//"@return: None\n"
+//"@rtype: None\n"
+//;
+//
+//static PyObject *
+//StateMachine_Init(StateMachineObject *self, PyObject *args, PyObject *kwds)
+//{
+//    GSM_Error           error;
+//    int                 replies = 1;
+//    static char         *kwlist[] = {"Replies", NULL};
+//
+//    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|I", kwlist, &replies))
+//        return NULL;
+//
+//    BEGIN_PHONE_COMM
+//    error = GSM_InitConnection(self->s, replies);
+//    END_PHONE_COMM
+//    if (!checkError(self->s, error, "Init"))
+//        return NULL;
+//
+//    /* Set callbacks */
+//    GSM_SetIncomingCallCallback(self->s, IncomingCall, self);
+//    GSM_SetIncomingSMSCallback(self->s, IncomingSMS, self);
+//    GSM_SetIncomingCBCallback(self->s, IncomingCB, self);
+//    GSM_SetIncomingUSSDCallback(self->s, IncomingUSSD, self);
+//    GSM_SetSendSMSStatusCallback(self->s, SendSMSStatus, self);
+//
+//    /* No cached data */
+//    self->memory_entry_cache_type = 0;
+//    self->memory_entry_cache = 1;
+//    self->todo_entry_cache = 1;
+//    self->calendar_entry_cache = 1;
+//
+//    Py_RETURN_NONE;
+//}
 
 
 static char StateMachine_Abort__doc__[] =
