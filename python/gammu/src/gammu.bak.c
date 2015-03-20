@@ -570,63 +570,63 @@ StateMachine_SetConfig(StateMachineObject *self, PyObject *args, PyObject *kwds)
 
 
 
-static char StateMachine_ReadConfig__doc__[] =
-"ReadConfig(Section, Configuration, Filename)\n\n"
-"Reads specified section of gammurc\n\n"
-"@param Section: Index of config section to read. Defaults to 0.\n"
-"@type Section: int\n"
-"@param Configuration: Index where config section will be stored. Defaults to Section.\n"
-"@type Configuration: int\n"
-"@param Filename: Path to configuration file (otherwise it is autodetected).\n"
-"@type Filename: string\n"
-"@return: None\n"
-"@rtype: None\n"
-;
+//static char StateMachine_ReadConfig__doc__[] =
+//"ReadConfig(Section, Configuration, Filename)\n\n"
+//"Reads specified section of gammurc\n\n"
+//"@param Section: Index of config section to read. Defaults to 0.\n"
+//"@type Section: int\n"
+//"@param Configuration: Index where config section will be stored. Defaults to Section.\n"
+//"@type Configuration: int\n"
+//"@param Filename: Path to configuration file (otherwise it is autodetected).\n"
+//"@type Filename: string\n"
+//"@return: None\n"
+//"@rtype: None\n"
+//;
 
-static PyObject *
-StateMachine_ReadConfig(StateMachineObject *self, PyObject *args, PyObject *kwds)
-{
-    GSM_Error       error;
-    int             section = 0;
-    int             dst = -1;
-    INI_Section     *cfg;
-    char            *cfg_path = NULL;
-    GSM_Config *Config;
-
-    static char         *kwlist[] = {"Section", "Configuration", "Filename", NULL};
-
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|IIs", kwlist, &section, &dst, &cfg_path))
-        return NULL;
-
-    if (dst == -1) dst = section;
-    Config = GSM_GetConfig(self->s, dst);
-    if (Config == NULL) {
-        PyErr_Format(PyExc_ValueError, "Maximal configuration storage exceeded");
-        return NULL;
-    }
-
-    error = GSM_FindGammuRC(&cfg, cfg_path);
-    if (!checkError(self->s, error, "FindGammuRC via ReadConfig"))
-        return NULL;
-    if (cfg == NULL) {
-        PyErr_SetString(PyExc_IOError, "Can not read gammurc");
-        return NULL;
-    }
-
-    error = GSM_ReadConfig(cfg, Config, section);
-    if (!checkError(self->s, error, "ReadConfig")) {
-        INI_Free(cfg);
-        return NULL;
-    }
-    Config->UseGlobalDebugFile = FALSE;
-
-    /* Tell Gammu we have configured another section */
-    GSM_SetConfigNum(self->s, dst + 1);
-
-    INI_Free(cfg);
-
-    Py_RETURN_NONE;
-}
+//static PyObject *
+//StateMachine_ReadConfig(StateMachineObject *self, PyObject *args, PyObject *kwds)
+//{
+//    GSM_Error       error;
+//    int             section = 0;
+//    int             dst = -1;
+//    INI_Section     *cfg;
+//    char            *cfg_path = NULL;
+//    GSM_Config *Config;
+//
+//    static char         *kwlist[] = {"Section", "Configuration", "Filename", NULL};
+//
+//    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|IIs", kwlist, &section, &dst, &cfg_path))
+//        return NULL;
+//
+//    if (dst == -1) dst = section;
+//    Config = GSM_GetConfig(self->s, dst);
+//    if (Config == NULL) {
+//        PyErr_Format(PyExc_ValueError, "Maximal configuration storage exceeded");
+//        return NULL;
+//    }
+//
+//    error = GSM_FindGammuRC(&cfg, cfg_path);
+//    if (!checkError(self->s, error, "FindGammuRC via ReadConfig"))
+//        return NULL;
+//    if (cfg == NULL) {
+//        PyErr_SetString(PyExc_IOError, "Can not read gammurc");
+//        return NULL;
+//    }
+//
+//    error = GSM_ReadConfig(cfg, Config, section);
+//    if (!checkError(self->s, error, "ReadConfig")) {
+//        INI_Free(cfg);
+//        return NULL;
+//    }
+//    Config->UseGlobalDebugFile = FALSE;
+//
+//    /* Tell Gammu we have configured another section */
+//    GSM_SetConfigNum(self->s, dst + 1);
+//
+//    INI_Free(cfg);
+//
+//    Py_RETURN_NONE;
+//}
 
 
 static char StateMachine_Init__doc__[] =
