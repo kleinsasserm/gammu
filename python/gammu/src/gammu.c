@@ -61,7 +61,7 @@
 #define END_PHONE_COMM \
     PyThread_release_lock(self->mutex); \
     Py_END_ALLOW_THREADS \
-    CheckIncomingEvents(self);
+//    CheckIncomingEvents(self);
 
 #else
 
@@ -506,8 +506,8 @@ PyMODINIT_FUNC PyInit__gammu(void) {
         return NULL;
     Py_INCREF(&StateMachineType);
 
-    //if (PyModule_AddObject(m, "StateMachine", (PyObject *)&StateMachineType) < 0)
-    //    return NULL;
+    if (PyModule_AddObject(m, "StateMachine", (PyObject *)&StateMachineType) < 0)
+        return NULL;
 
     /* SMSD object */
     //if (!gammu_smsd_init(m)) return NULL;
