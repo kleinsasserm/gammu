@@ -39,6 +39,8 @@ import re
 import datetime
 import string
 
+os.environ["CFLAGS"] = '-g'
+
 # some defines
 VERSION = '1.35.90'
 VERSION_TUPLE = tuple(map(int, VERSION.split('.')))
