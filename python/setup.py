@@ -39,7 +39,7 @@ import re
 import datetime
 import string
 
-os.environ["CFLAGS"] = '-g'
+os.environ["CFLAGS"] = '-g -O0 -fno-inline'
 
 # some defines
 VERSION = '1.35.90'

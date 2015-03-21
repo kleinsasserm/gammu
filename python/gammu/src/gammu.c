@@ -103,6 +103,119 @@ typedef struct {
 #endif
 } StateMachineObject;
 
+/* ---------------------------------------------------------------- */
+
+/*
+ * Callbacks follow. Those are common for all state machines and thus need to
+ * lookup correct state machine.
+ */
+
+/**
+ * SMS sending status callback, we handle this ourself and this is not
+ * published.
+ */
+static void SendSMSStatus (GSM_StateMachine *s, int status, int mr, void *user) {
+    StateMachineObject  *sm = (StateMachineObject  *)user;
+    if (sm == NULL) return;
+
+    sm->MessageReference = mr;
+    if (status == 0) {
+        sm->SMSStatus = ERR_NONE;
+    } else if (status == 322) {
+        sm->SMSStatus = ERR_FULL;
+    } else {
+        sm->SMSStatus = ERR_UNKNOWN;
+    }
+}
+
+/**
+ * Incoming call callback.
+ */
+static void IncomingCall (GSM_StateMachine *s, GSM_Call *call, void *user) {
+    StateMachineObject  *sm = (StateMachineObject  *)user;
+    int i = 0;
+
+    if (sm == NULL) return;
+
+    while (i < MAX_EVENTS && sm->IncomingCallQueue[i] != NULL) i++;
+
+    if (i == MAX_EVENTS) {
+        pyg_error("Incoming call queue overflow!\n");
+        return;
+    }
+
+    sm->IncomingCallQueue[i] = (GSM_Call *)malloc(sizeof(GSM_Call));
+    if (sm->IncomingCallQueue[i] == NULL) return;
+
+    *(sm->IncomingCallQueue[i]) = *call;
+}
+
+/**
+ * Incoming SMS callback.
+ */
+static void IncomingSMS (GSM_StateMachine *s, GSM_SMSMessage *msg, void *user) {
+    StateMachineObject  *sm = (StateMachineObject  *)user;
+    int i = 0;
+
+    if (sm == NULL) return;
+
+    while (i < MAX_EVENTS && sm->IncomingSMSQueue[i] != NULL) i++;
+
+    if (i == MAX_EVENTS) {
+        pyg_error("Incoming SMS queue overflow!\n");
+        return;
+    }
+
+    sm->IncomingSMSQueue[i] = (GSM_SMSMessage *)malloc(sizeof(GSM_SMSMessage));
+    if (sm->IncomingSMSQueue[i] == NULL) return;
+
+    *(sm->IncomingSMSQueue[i]) = *msg;
+}
+
+/**
+ * Incoming CB callback.
+ */
+static void IncomingCB (GSM_StateMachine *s, GSM_CBMessage *cb, void *user) {
+    StateMachineObject  *sm = (StateMachineObject  *)user;
+    int i = 0;
+
+    if (sm == NULL) return;
+
+    while (i < MAX_EVENTS && sm->IncomingCBQueue[i] != NULL) i++;
+
+    if (i == MAX_EVENTS) {
+        pyg_error("Incoming CB queue overflow!\n");
+        return;
+    }
+
+    sm->IncomingCBQueue[i] = (GSM_CBMessage *)malloc(sizeof(GSM_CBMessage));
+    if (sm->IncomingCBQueue[i] == NULL) return;
+
+    *(sm->IncomingCBQueue[i]) = *cb;
+}
+
+/**
+ * Incoming USSD callback.
+ */
+static void IncomingUSSD (GSM_StateMachine *s, GSM_USSDMessage *ussd, void *user) {
+    StateMachineObject  *sm = (StateMachineObject  *)user;
+    int i = 0;
+
+    if (sm == NULL) return;
+
+    while (i < MAX_EVENTS && sm->IncomingUSSDQueue[i] != NULL) i++;
+
+    if (i == MAX_EVENTS) {
+        pyg_error("Incoming USSD queue overflow!\n");
+        return;
+    }
+
+    sm->IncomingUSSDQueue[i] = (GSM_USSDMessage *)malloc(sizeof(GSM_USSDMessage));
+    if (sm->IncomingUSSDQueue[i] == NULL) return;
+
+    *(sm->IncomingUSSDQueue[i]) = *ussd;
+}
+
 static void 
 StateMachine_dealloc(StateMachineObject *self) 
 { 
@@ -174,6 +287,99 @@ StateMachine_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     self->s = GSM_AllocStateMachine();
 
     return (PyObject *)self;
+}
+
+/*********************/
+/* GetSecurityStatus */
+/*********************/
+
+static char StateMachine_GetSecurityStatus__doc__[] =
+"GetSecurityStatus()\n\n"
+"Queries whether some security code needs to be entered.\n\n"
+"@return: String indicating which code needs to be entered or None if none is needed\n"
+"@rtype: string\n"
+;
+
+static PyObject *
+StateMachine_GetSecurityStatus(StateMachineObject *self, PyObject *args, PyObject *kwds) {
+    GSM_Error           error;
+    GSM_SecurityCodeType    Status;
+
+    if (!PyArg_ParseTuple(args, ""))
+        return NULL;
+
+    BEGIN_PHONE_COMM
+    error = GSM_GetSecurityStatus(self->s, &Status);
+    END_PHONE_COMM
+
+    if (!checkError(self->s, error, "GetSecurityStatus")) return NULL;
+
+    switch (Status) {
+        case SEC_SecurityCode: return Py_BuildValue("s", "SecurityCode");
+        case SEC_Pin: return Py_BuildValue("s", "PIN");
+        case SEC_Pin2: return Py_BuildValue("s", "PIN2");
+        case SEC_Puk: return Py_BuildValue("s", "PUK");
+        case SEC_Puk2: return Py_BuildValue("s", "PUK2");
+        case SEC_Phone: return Py_BuildValue("s", "Phone");
+        case SEC_Network: return Py_BuildValue("s", "Network");
+        case SEC_None: Py_RETURN_NONE;
+    }
+    Py_RETURN_NONE;
+}
+
+/*********************/
+/* EnterSecurityCode */
+/*********************/
+
+static char StateMachine_EnterSecurityCode__doc__[] =
+"EnterSecurityCode(Type, Code, NewPIN)\n\n"
+"Entres security code.\n"
+"@param Type: What code to enter, one of 'PIN', 'PUK', 'PIN2', 'PUK2', 'Phone'.\n"
+"@type Type: string\n"
+"@param Code: Code value\n"
+"@type Code: string\n"
+"@return: None\n"
+"@rtype: None\n"
+;
+
+static PyObject *
+StateMachine_EnterSecurityCode(StateMachineObject *self, PyObject *args, PyObject *kwds) {
+    GSM_Error           error;
+    GSM_SecurityCode    Code;
+    char                *s;
+    char                *code;
+    char                *newpin = NULL;
+    static char         *kwlist[] = {"Type", "Code", "NewPIN", NULL};
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "ss|s", kwlist,
+                &s, &code, &newpin))
+        return NULL;
+
+    if (strcasecmp(s, "PIN") == 0)          Code.Type = SEC_Pin;
+    else if (strcasecmp(s, "PUK") == 0)     Code.Type = SEC_Puk;
+    else if (strcasecmp(s, "PIN2") == 0)    Code.Type = SEC_Pin2;
+    else if (strcasecmp(s, "PUK2") == 0)    Code.Type = SEC_Puk2;
+    else if (strcasecmp(s, "Phone") == 0)   Code.Type = SEC_Phone;
+    else if (strcasecmp(s, "Network") == 0)   Code.Type = SEC_Network;
+    else {
+        PyErr_Format(PyExc_ValueError, "Bad value for Type: '%s'", s);
+        return NULL;
+    }
+
+    mystrncpy(Code.Code, code, GSM_SECURITY_CODE_LEN);
+    if (newpin == NULL) {
+        Code.NewPIN[0] = 0;
+    } else {
+        mystrncpy(Code.NewPIN, newpin, GSM_SECURITY_CODE_LEN);
+    }
+
+    BEGIN_PHONE_COMM
+    error = GSM_EnterSecurityCode(self->s, &Code);
+    END_PHONE_COMM
+
+    if (!checkError(self->s, error, "EnterSecurityCode")) return NULL;
+
+    Py_RETURN_NONE;
 }
 
 /***********/
@@ -263,7 +469,7 @@ StateMachine_ReadConfig(StateMachineObject *self, PyObject *args, PyObject *kwds
 
     error = GSM_FindGammuRC(&cfg, cfg_path);
     if (!checkError(self->s, error, "FindGammuRC via ReadConfig")) {
-        PyErr_SetString(PyExc_IOError, "gammurc configuration file not found");
+        PyErr_SetString(PyExc_IOError, GSM_ErrorName(error));
         return NULL;
     }
 
@@ -310,8 +516,10 @@ StateMachine_Init(StateMachineObject *self, PyObject *args, PyObject *kwds)
     BEGIN_PHONE_COMM
     error = GSM_InitConnection(self->s, replies);
     END_PHONE_COMM
-    if (!checkError(self->s, error, "Init"))
+    if (!checkError(self->s, error, "Init")){
+        PyErr_SetString(PyExc_IOError, GSM_ErrorName(error));
         return NULL;
+    }
 
     /* Set callbacks */
     GSM_SetIncomingCallCallback(self->s, IncomingCall, self);
@@ -364,8 +572,8 @@ static struct PyMethodDef StateMachine_methods[] = {
 //    {"PressKey",	(PyCFunction)StateMachine_PressKey,	METH_VARARGS|METH_KEYWORDS,	StateMachine_PressKey__doc__},
 //    {"Reset",	(PyCFunction)StateMachine_Reset,	METH_VARARGS|METH_KEYWORDS,	StateMachine_Reset__doc__},
 //    {"ResetPhoneSettings",	(PyCFunction)StateMachine_ResetPhoneSettings,	METH_VARARGS|METH_KEYWORDS,	StateMachine_ResetPhoneSettings__doc__},
-//    {"EnterSecurityCode",	(PyCFunction)StateMachine_EnterSecurityCode,	METH_VARARGS|METH_KEYWORDS,	StateMachine_EnterSecurityCode__doc__},
-//    {"GetSecurityStatus",	(PyCFunction)StateMachine_GetSecurityStatus,	METH_VARARGS|METH_KEYWORDS,	StateMachine_GetSecurityStatus__doc__},
+    {"EnterSecurityCode",	(PyCFunction)StateMachine_EnterSecurityCode,	METH_VARARGS|METH_KEYWORDS,	StateMachine_EnterSecurityCode__doc__},
+    {"GetSecurityStatus",	(PyCFunction)StateMachine_GetSecurityStatus,	METH_VARARGS|METH_KEYWORDS,	StateMachine_GetSecurityStatus__doc__},
 //    {"GetDisplayStatus",	(PyCFunction)StateMachine_GetDisplayStatus,	METH_VARARGS|METH_KEYWORDS,	StateMachine_GetDisplayStatus__doc__},
 //    {"SetAutoNetworkLogin",	(PyCFunction)StateMachine_SetAutoNetworkLogin,	METH_VARARGS|METH_KEYWORDS,	StateMachine_SetAutoNetworkLogin__doc__},
 //    {"GetBatteryCharge",	(PyCFunction)StateMachine_GetBatteryCharge,	METH_VARARGS|METH_KEYWORDS,	StateMachine_GetBatteryCharge__doc__},
@@ -621,21 +829,21 @@ PyMODINIT_FUNC PyInit__gammu(void) {
     /* Add some symbolic constants to the module */
 
     /* Define errors */
-    //if (!gammu_create_errors(d)) return NULL;
+    if (!gammu_create_errors(d)) return NULL;
 
     /* Define data */
-    //if (!gammu_create_data(d)) return NULL;
+    if (!gammu_create_data(d)) return NULL;
 
     /* Check for errors */
-    //if (PyErr_Occurred()) {
-    //    PyErr_Print();
-    //    Py_FatalError("Can not initialize module _gammu, see above for reasons");
-    //}
+    if (PyErr_Occurred()) {
+        PyErr_Print();
+        Py_FatalError("Can not initialize module _gammu, see above for reasons");
+    }
 
     /* Reset debugging setup */
-    //di = GSM_GetGlobalDebug();
-    //GSM_SetDebugFileDescriptor(NULL, FALSE, di);
-    //GSM_SetDebugLevel("none", di);
+    di = GSM_GetGlobalDebug();
+    GSM_SetDebugFileDescriptor(NULL, FALSE, di);
+    GSM_SetDebugLevel("none", di);
 
     return m;
 }

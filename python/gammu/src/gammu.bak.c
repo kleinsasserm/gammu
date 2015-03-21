@@ -102,28 +102,28 @@ PyObject    *DebugFile;
 
 /* ---------------------------------------------------------------- */
 
-/*
- * Callbacks follow. Those are common for all state machines and thus need to
- * lookup correct state machine.
- */
-
-/**
- * SMS sending status callback, we handle this ourself and this is not
- * published.
- */
-static void SendSMSStatus (GSM_StateMachine *s, int status, int mr, void *user) {
-    StateMachineObject  *sm = (StateMachineObject  *)user;
-    if (sm == NULL) return;
-
-    sm->MessageReference = mr;
-    if (status == 0) {
-        sm->SMSStatus = ERR_NONE;
-    } else if (status == 322) {
-        sm->SMSStatus = ERR_FULL;
-    } else {
-        sm->SMSStatus = ERR_UNKNOWN;
-    }
-}
+///*
+// * Callbacks follow. Those are common for all state machines and thus need to
+// * lookup correct state machine.
+// */
+//
+///**
+// * SMS sending status callback, we handle this ourself and this is not
+// * published.
+// */
+//static void SendSMSStatus (GSM_StateMachine *s, int status, int mr, void *user) {
+//    StateMachineObject  *sm = (StateMachineObject  *)user;
+//    if (sm == NULL) return;
+//
+//    sm->MessageReference = mr;
+//    if (status == 0) {
+//        sm->SMSStatus = ERR_NONE;
+//    } else if (status == 322) {
+//        sm->SMSStatus = ERR_FULL;
+//    } else {
+//        sm->SMSStatus = ERR_UNKNOWN;
+//    }
+//}
 
 /**
  * Function to pull out file pointer of PyObject
@@ -151,93 +151,93 @@ static FILE* streamFromPyFile( PyObject* file )
 }
 
 
-/**
- * Incoming call callback.
- */
-static void IncomingCall (GSM_StateMachine *s, GSM_Call *call, void *user) {
-    StateMachineObject  *sm = (StateMachineObject  *)user;
-    int i = 0;
-
-    if (sm == NULL) return;
-
-    while (i < MAX_EVENTS && sm->IncomingCallQueue[i] != NULL) i++;
-
-    if (i == MAX_EVENTS) {
-        pyg_error("Incoming call queue overflow!\n");
-        return;
-    }
-
-    sm->IncomingCallQueue[i] = (GSM_Call *)malloc(sizeof(GSM_Call));
-    if (sm->IncomingCallQueue[i] == NULL) return;
-
-    *(sm->IncomingCallQueue[i]) = *call;
-}
-
-/**
- * Incoming SMS callback.
- */
-static void IncomingSMS (GSM_StateMachine *s, GSM_SMSMessage *msg, void *user) {
-    StateMachineObject  *sm = (StateMachineObject  *)user;
-    int i = 0;
-
-    if (sm == NULL) return;
-
-    while (i < MAX_EVENTS && sm->IncomingSMSQueue[i] != NULL) i++;
-
-    if (i == MAX_EVENTS) {
-        pyg_error("Incoming SMS queue overflow!\n");
-        return;
-    }
-
-    sm->IncomingSMSQueue[i] = (GSM_SMSMessage *)malloc(sizeof(GSM_SMSMessage));
-    if (sm->IncomingSMSQueue[i] == NULL) return;
-
-    *(sm->IncomingSMSQueue[i]) = *msg;
-}
-
-/**
- * Incoming CB callback.
- */
-static void IncomingCB (GSM_StateMachine *s, GSM_CBMessage *cb, void *user) {
-    StateMachineObject  *sm = (StateMachineObject  *)user;
-    int i = 0;
-
-    if (sm == NULL) return;
-
-    while (i < MAX_EVENTS && sm->IncomingCBQueue[i] != NULL) i++;
-
-    if (i == MAX_EVENTS) {
-        pyg_error("Incoming CB queue overflow!\n");
-        return;
-    }
-
-    sm->IncomingCBQueue[i] = (GSM_CBMessage *)malloc(sizeof(GSM_CBMessage));
-    if (sm->IncomingCBQueue[i] == NULL) return;
-
-    *(sm->IncomingCBQueue[i]) = *cb;
-}
-
-/**
- * Incoming USSD callback.
- */
-static void IncomingUSSD (GSM_StateMachine *s, GSM_USSDMessage *ussd, void *user) {
-    StateMachineObject  *sm = (StateMachineObject  *)user;
-    int i = 0;
-
-    if (sm == NULL) return;
-
-    while (i < MAX_EVENTS && sm->IncomingUSSDQueue[i] != NULL) i++;
-
-    if (i == MAX_EVENTS) {
-        pyg_error("Incoming USSD queue overflow!\n");
-        return;
-    }
-
-    sm->IncomingUSSDQueue[i] = (GSM_USSDMessage *)malloc(sizeof(GSM_USSDMessage));
-    if (sm->IncomingUSSDQueue[i] == NULL) return;
-
-    *(sm->IncomingUSSDQueue[i]) = *ussd;
-}
+///**
+// * Incoming call callback.
+// */
+//static void IncomingCall (GSM_StateMachine *s, GSM_Call *call, void *user) {
+//    StateMachineObject  *sm = (StateMachineObject  *)user;
+//    int i = 0;
+//
+//    if (sm == NULL) return;
+//
+//    while (i < MAX_EVENTS && sm->IncomingCallQueue[i] != NULL) i++;
+//
+//    if (i == MAX_EVENTS) {
+//        pyg_error("Incoming call queue overflow!\n");
+//        return;
+//    }
+//
+//    sm->IncomingCallQueue[i] = (GSM_Call *)malloc(sizeof(GSM_Call));
+//    if (sm->IncomingCallQueue[i] == NULL) return;
+//
+//    *(sm->IncomingCallQueue[i]) = *call;
+//}
+//
+///**
+// * Incoming SMS callback.
+// */
+//static void IncomingSMS (GSM_StateMachine *s, GSM_SMSMessage *msg, void *user) {
+//    StateMachineObject  *sm = (StateMachineObject  *)user;
+//    int i = 0;
+//
+//    if (sm == NULL) return;
+//
+//    while (i < MAX_EVENTS && sm->IncomingSMSQueue[i] != NULL) i++;
+//
+//    if (i == MAX_EVENTS) {
+//        pyg_error("Incoming SMS queue overflow!\n");
+//        return;
+//    }
+//
+//    sm->IncomingSMSQueue[i] = (GSM_SMSMessage *)malloc(sizeof(GSM_SMSMessage));
+//    if (sm->IncomingSMSQueue[i] == NULL) return;
+//
+//    *(sm->IncomingSMSQueue[i]) = *msg;
+//}
+//
+///**
+// * Incoming CB callback.
+// */
+//static void IncomingCB (GSM_StateMachine *s, GSM_CBMessage *cb, void *user) {
+//    StateMachineObject  *sm = (StateMachineObject  *)user;
+//    int i = 0;
+//
+//    if (sm == NULL) return;
+//
+//    while (i < MAX_EVENTS && sm->IncomingCBQueue[i] != NULL) i++;
+//
+//    if (i == MAX_EVENTS) {
+//        pyg_error("Incoming CB queue overflow!\n");
+//        return;
+//    }
+//
+//    sm->IncomingCBQueue[i] = (GSM_CBMessage *)malloc(sizeof(GSM_CBMessage));
+//    if (sm->IncomingCBQueue[i] == NULL) return;
+//
+//    *(sm->IncomingCBQueue[i]) = *cb;
+//}
+//
+///**
+// * Incoming USSD callback.
+// */
+//static void IncomingUSSD (GSM_StateMachine *s, GSM_USSDMessage *ussd, void *user) {
+//    StateMachineObject  *sm = (StateMachineObject  *)user;
+//    int i = 0;
+//
+//    if (sm == NULL) return;
+//
+//    while (i < MAX_EVENTS && sm->IncomingUSSDQueue[i] != NULL) i++;
+//
+//    if (i == MAX_EVENTS) {
+//        pyg_error("Incoming USSD queue overflow!\n");
+//        return;
+//    }
+//
+//    sm->IncomingUSSDQueue[i] = (GSM_USSDMessage *)malloc(sizeof(GSM_USSDMessage));
+//    if (sm->IncomingUSSDQueue[i] == NULL) return;
+//
+//    *(sm->IncomingUSSDQueue[i]) = *ussd;
+//}
 
 /**
  * Process queue of incoming events from phone.
@@ -1505,43 +1505,43 @@ StateMachine_EnterSecurityCode(StateMachineObject *self, PyObject *args, PyObjec
     Py_RETURN_NONE;
 }
 
-/*********************/
-/* GetSecurityStatus */
-/*********************/
-
-static char StateMachine_GetSecurityStatus__doc__[] =
-"GetSecurityStatus()\n\n"
-"Queries whether some security code needs to be entered.\n\n"
-"@return: String indicating which code needs to be entered or None if none is needed\n"
-"@rtype: string\n"
-;
-
-static PyObject *
-StateMachine_GetSecurityStatus(StateMachineObject *self, PyObject *args, PyObject *kwds) {
-    GSM_Error           error;
-    GSM_SecurityCodeType    Status;
-
-    if (!PyArg_ParseTuple(args, ""))
-        return NULL;
-
-    BEGIN_PHONE_COMM
-    error = GSM_GetSecurityStatus(self->s, &Status);
-    END_PHONE_COMM
-
-    if (!checkError(self->s, error, "GetSecurityStatus")) return NULL;
-
-    switch (Status) {
-        case SEC_SecurityCode: return Py_BuildValue("s", "SecurityCode");
-        case SEC_Pin: return Py_BuildValue("s", "PIN");
-        case SEC_Pin2: return Py_BuildValue("s", "PIN2");
-        case SEC_Puk: return Py_BuildValue("s", "PUK");
-        case SEC_Puk2: return Py_BuildValue("s", "PUK2");
-        case SEC_Phone: return Py_BuildValue("s", "Phone");
-        case SEC_Network: return Py_BuildValue("s", "Network");
-        case SEC_None: Py_RETURN_NONE;
-    }
-    Py_RETURN_NONE;
-}
+///*********************/
+///* GetSecurityStatus */
+///*********************/
+//
+//static char StateMachine_GetSecurityStatus__doc__[] =
+//"GetSecurityStatus()\n\n"
+//"Queries whether some security code needs to be entered.\n\n"
+//"@return: String indicating which code needs to be entered or None if none is needed\n"
+//"@rtype: string\n"
+//;
+//
+//static PyObject *
+//StateMachine_GetSecurityStatus(StateMachineObject *self, PyObject *args, PyObject *kwds) {
+//    GSM_Error           error;
+//    GSM_SecurityCodeType    Status;
+//
+//    if (!PyArg_ParseTuple(args, ""))
+//        return NULL;
+//
+//    BEGIN_PHONE_COMM
+//    error = GSM_GetSecurityStatus(self->s, &Status);
+//    END_PHONE_COMM
+//
+//    if (!checkError(self->s, error, "GetSecurityStatus")) return NULL;
+//
+//    switch (Status) {
+//        case SEC_SecurityCode: return Py_BuildValue("s", "SecurityCode");
+//        case SEC_Pin: return Py_BuildValue("s", "PIN");
+//        case SEC_Pin2: return Py_BuildValue("s", "PIN2");
+//        case SEC_Puk: return Py_BuildValue("s", "PUK");
+//        case SEC_Puk2: return Py_BuildValue("s", "PUK2");
+//        case SEC_Phone: return Py_BuildValue("s", "Phone");
+//        case SEC_Network: return Py_BuildValue("s", "Network");
+//        case SEC_None: Py_RETURN_NONE;
+//    }
+//    Py_RETURN_NONE;
+//}
 
 /********************/
 /* GetDisplayStatus */
