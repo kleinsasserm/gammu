@@ -404,32 +404,34 @@ StateMachine_SendSMS(StateMachineObject *self, PyObject *args, PyObject *kwds) {
     int                 i = 0;
 
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", kwlist,
-                &PyDict_Type, &(value)))
+                &PyDict_Type, &(value))){
         return NULL;
+    }
 
     if (!SMSFromPython(value, &sms, 0, 0, 1)) return NULL;
 
-    self->SMSStatus = ERR_TIMEOUT;
+    //self->SMSStatus = ERR_TIMEOUT;
 
-    BEGIN_PHONE_COMM
-    error = GSM_SendSMS(self->s, &sms);
-    END_PHONE_COMM
+    //BEGIN_PHONE_COMM
+    //error = GSM_SendSMS(self->s, &sms);
+    //END_PHONE_COMM
 
-    if (!checkError(self->s, error, "SendSMS")) return NULL;
+    //if (!checkError(self->s, error, "SendSMS")) return NULL;
 
-    while (self->SMSStatus != ERR_NONE) {
-        i++;
-        BEGIN_PHONE_COMM
-        GSM_ReadDevice(self->s, TRUE);
-        END_PHONE_COMM
-        if (self->SMSStatus == ERR_FULL || self->SMSStatus == ERR_UNKNOWN || i == 100) {
-            if (!checkError(self->s, self->SMSStatus, "SendSMS")) {
-                return NULL;
-            }
-        }
-    }
+    //while (self->SMSStatus != ERR_NONE) {
+    //    i++;
+    //    BEGIN_PHONE_COMM
+    //    GSM_ReadDevice(self->s, TRUE);
+    //    END_PHONE_COMM
+    //    if (self->SMSStatus == ERR_FULL || self->SMSStatus == ERR_UNKNOWN || i == 100) {
+    //        if (!checkError(self->s, self->SMSStatus, "SendSMS")) {
+    //            return NULL;
+    //        }
+    //    }
+    //}
 
-    return PyLong_FromLong(self->MessageReference);
+    //return PyLong_FromLong(self->MessageReference);
+    Py_RETURN_NONE;
 }
 
 static char StateMachine_ReadConfig__doc__[] =
