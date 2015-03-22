@@ -22,6 +22,7 @@
 
 #include "convertors.h"
 #include "misc.h"
+#include "stdio.h"
 
 char *SMSValidityToString(GSM_SMSValidity Validity)
 {
@@ -283,6 +284,7 @@ int SMSCFromPython(PyObject * dict, GSM_SMSC * smsc, gboolean complete)
 	}
 
 	memset(smsc, 0, sizeof(GSM_SMSC));
+
 
 	if (!complete) {
 		smsc->Location = GetIntFromDict(dict, "Location");
@@ -729,161 +731,161 @@ int SMSFromPython(PyObject * dict, GSM_SMSMessage * sms, int needslocation,
 		}
 	}
 
-	if (!CopyStringFromDict
-	    (dict, "Name", GSM_MAX_SMS_NAME_LENGTH, sms->Name)) {
-		PyErr_Clear();
-		sms->Name[0] = 0;
-		sms->Name[1] = 0;
-	}
+	//if (!CopyStringFromDict
+	//    (dict, "Name", GSM_MAX_SMS_NAME_LENGTH, sms->Name)) {
+	//	PyErr_Clear();
+	//	sms->Name[0] = 0;
+	//	sms->Name[1] = 0;
+	//}
 
-	o = PyDict_GetItemString(dict, "UDH");
-	if (o == NULL) {
-		sms->UDH.Type = UDH_NoUDH;
-	} else {
-		if (!PyDict_Check(o)) {
-			if (o == Py_None) {
-				sms->UDH.Type = UDH_NoUDH;
-			} else {
-				PyErr_Format(PyExc_ValueError,
-					     "UDH is not a dictionary!");
-				return 0;
-			}
-		} else {
-			if (!UDHFromPython(o, &(sms->UDH)))
-				return 0;
-		}
-	}
+	//o = PyDict_GetItemString(dict, "UDH");
+	//if (o == NULL) {
+	//	sms->UDH.Type = UDH_NoUDH;
+	//} else {
+	//	if (!PyDict_Check(o)) {
+	//		if (o == Py_None) {
+	//			sms->UDH.Type = UDH_NoUDH;
+	//		} else {
+	//			PyErr_Format(PyExc_ValueError,
+	//				     "UDH is not a dictionary!");
+	//			return 0;
+	//		}
+	//	} else {
+	//		if (!UDHFromPython(o, &(sms->UDH)))
+	//			return 0;
+	//	}
+	//}
 
-	s = GetCharFromDict(dict, "Coding");
-	if (s == NULL) {
-		sms->Coding = SMS_Coding_Default_No_Compression;
-		PyErr_Clear();
-	} else {
-		sms->Coding = StringToSMSCoding(s);
-		if (sms->Coding == 0)
-			return 0;
-	}
+	//s = GetCharFromDict(dict, "Coding");
+	//if (s == NULL) {
+	//	sms->Coding = SMS_Coding_Default_No_Compression;
+	//	PyErr_Clear();
+	//} else {
+	//	sms->Coding = StringToSMSCoding(s);
+	//	if (sms->Coding == 0)
+	//		return 0;
+	//}
 
-	if (sms->Coding != SMS_Coding_8bit) {
-		/* No UDH/UserUDH => copy as text */
-		if (!CopyStringFromDict
-		    (dict, "Text", GSM_MAX_SMS_LENGTH, sms->Text))
-			return 0;
-		sms->Length = UnicodeLength(sms->Text);
-	} else {
-		/* Some UDH => copy as data */
-		s = GetDataFromDict(dict, "Text", &len);
-		if (s == NULL)
-			return 0;
+	//if (sms->Coding != SMS_Coding_8bit) {
+	//	/* No UDH/UserUDH => copy as text */
+	//	if (!CopyStringFromDict
+	//	    (dict, "Text", GSM_MAX_SMS_LENGTH, sms->Text))
+	//		return 0;
+	//	sms->Length = UnicodeLength(sms->Text);
+	//} else {
+	//	/* Some UDH => copy as data */
+	//	s = GetDataFromDict(dict, "Text", &len);
+	//	if (s == NULL)
+	//		return 0;
 
-		sms->Length = len;
+	//	sms->Length = len;
 
-		if (sms->Length > GSM_MAX_SMS_LENGTH) {
-			pyg_warning("SMS text too large, truncating!\n");
-			sms->Length = GSM_MAX_SMS_LENGTH;
-		}
+	//	if (sms->Length > GSM_MAX_SMS_LENGTH) {
+	//		pyg_warning("SMS text too large, truncating!\n");
+	//		sms->Length = GSM_MAX_SMS_LENGTH;
+	//	}
 
-		memcpy(sms->Text, s, sms->Length);
-	}
+	//	memcpy(sms->Text, s, sms->Length);
+	//}
 
-	if ((sms->Folder = GetIntFromDict(dict, "Folder")) == INT_INVALID) {
-		if (needsfolder) {
-			return 0;
-		} else {
-			PyErr_Clear();
-		}
-	}
+	//if ((sms->Folder = GetIntFromDict(dict, "Folder")) == INT_INVALID) {
+	//	if (needsfolder) {
+	//		return 0;
+	//	} else {
+	//		PyErr_Clear();
+	//	}
+	//}
 
-	if ((sms->Location = GetIntFromDict(dict, "Location")) == INT_INVALID) {
-		if (needslocation) {
-			return 0;
-		} else {
-			PyErr_Clear();
-		}
-	}
-	if ((sms->InboxFolder =
-	     GetBoolFromDict(dict, "InboxFolder")) == BOOL_INVALID) {
-		sms->InboxFolder = FALSE;
-		PyErr_Clear();
-	}
-	if ((i = GetIntFromDict(dict, "DeliveryStatus")) == INT_INVALID) {
-		sms->DeliveryStatus = 0;
-		PyErr_Clear();
-	} else {
-		sms->DeliveryStatus = i;
-	}
+	//if ((sms->Location = GetIntFromDict(dict, "Location")) == INT_INVALID) {
+	//	if (needslocation) {
+	//		return 0;
+	//	} else {
+	//		PyErr_Clear();
+	//	}
+	//}
+	//if ((sms->InboxFolder =
+	//     GetBoolFromDict(dict, "InboxFolder")) == BOOL_INVALID) {
+	//	sms->InboxFolder = FALSE;
+	//	PyErr_Clear();
+	//}
+	//if ((i = GetIntFromDict(dict, "DeliveryStatus")) == INT_INVALID) {
+	//	sms->DeliveryStatus = 0;
+	//	PyErr_Clear();
+	//} else {
+	//	sms->DeliveryStatus = i;
+	//}
 
-	if ((i = GetIntFromDict(dict, "ReplyViaSameSMSC")) == INT_INVALID) {
-		sms->ReplyViaSameSMSC = FALSE;
-		PyErr_Clear();
-	} else {
-		sms->ReplyViaSameSMSC = i;
-	}
-	if ((i = GetIntFromDict(dict, "Class")) == INT_INVALID) {
-		sms->Class = -1;
-		PyErr_Clear();
-	} else {
-		sms->Class = i;
-	}
-	if ((i = GetIntFromDict(dict, "MessageReference")) == INT_INVALID) {
-		sms->MessageReference = 0;
-		PyErr_Clear();
-	} else {
-		sms->MessageReference = i;
-	}
-	if ((i = GetIntFromDict(dict, "ReplaceMessage")) == INT_INVALID) {
-		sms->ReplaceMessage = 0;
-		PyErr_Clear();
-	} else {
-		sms->ReplaceMessage = i;
-	}
-	if ((sms->RejectDuplicates =
-	     GetBoolFromDict(dict, "RejectDuplicates")) == BOOL_INVALID) {
-		sms->RejectDuplicates = FALSE;
-		PyErr_Clear();
-	}
+	//if ((i = GetIntFromDict(dict, "ReplyViaSameSMSC")) == INT_INVALID) {
+	//	sms->ReplyViaSameSMSC = FALSE;
+	//	PyErr_Clear();
+	//} else {
+	//	sms->ReplyViaSameSMSC = i;
+	//}
+	//if ((i = GetIntFromDict(dict, "Class")) == INT_INVALID) {
+	//	sms->Class = -1;
+	//	PyErr_Clear();
+	//} else {
+	//	sms->Class = i;
+	//}
+	//if ((i = GetIntFromDict(dict, "MessageReference")) == INT_INVALID) {
+	//	sms->MessageReference = 0;
+	//	PyErr_Clear();
+	//} else {
+	//	sms->MessageReference = i;
+	//}
+	//if ((i = GetIntFromDict(dict, "ReplaceMessage")) == INT_INVALID) {
+	//	sms->ReplaceMessage = 0;
+	//	PyErr_Clear();
+	//} else {
+	//	sms->ReplaceMessage = i;
+	//}
+	//if ((sms->RejectDuplicates =
+	//     GetBoolFromDict(dict, "RejectDuplicates")) == BOOL_INVALID) {
+	//	sms->RejectDuplicates = FALSE;
+	//	PyErr_Clear();
+	//}
 
-	s = GetCharFromDict(dict, "Memory");
-	if (s == NULL || strcmp(s, "") == 0) {
-		sms->Memory = 0;
-		PyErr_Clear();
-	} else {
-		sms->Memory = StringToMemoryType(s);
-		if (sms->Memory == 0)
-			return 0;
-	}
+	//s = GetCharFromDict(dict, "Memory");
+	//if (s == NULL || strcmp(s, "") == 0) {
+	//	sms->Memory = 0;
+	//	PyErr_Clear();
+	//} else {
+	//	sms->Memory = StringToMemoryType(s);
+	//	if (sms->Memory == 0)
+	//		return 0;
+	//}
 
-	s = GetCharFromDict(dict, "Type");
-	if (s == NULL) {
-		sms->PDU = SMS_Submit;
-		PyErr_Clear();
-	} else {
-		sms->PDU = StringToSMSType(s);
-		if (sms->PDU == 0)
-			return 0;
-	}
+	//s = GetCharFromDict(dict, "Type");
+	//if (s == NULL) {
+	//	sms->PDU = SMS_Submit;
+	//	PyErr_Clear();
+	//} else {
+	//	sms->PDU = StringToSMSType(s);
+	//	if (sms->PDU == 0)
+	//		return 0;
+	//}
 
-	sms->DateTime = GetDateTimeFromDict(dict, "DateTime");
-	if (sms->DateTime.Year == -1) {
-		sms->DateTime = nulldt;
-		PyErr_Clear();
-	}
+	//sms->DateTime = GetDateTimeFromDict(dict, "DateTime");
+	//if (sms->DateTime.Year == -1) {
+	//	sms->DateTime = nulldt;
+	//	PyErr_Clear();
+	//}
 
-	sms->SMSCTime = GetDateTimeFromDict(dict, "SMSCDateTime");
-	if (sms->SMSCTime.Year == -1) {
-		sms->SMSCTime = nulldt;
-		PyErr_Clear();
-	}
+	//sms->SMSCTime = GetDateTimeFromDict(dict, "SMSCDateTime");
+	//if (sms->SMSCTime.Year == -1) {
+	//	sms->SMSCTime = nulldt;
+	//	PyErr_Clear();
+	//}
 
-	s = GetCharFromDict(dict, "State");
-	if (s == NULL) {
-		PyErr_Clear();
-		sms->State = SMS_UnSent;
-	} else {
-		sms->State = StringToSMSState(s);
-		if (sms->State == 0)
-			return 0;
-	}
+	//s = GetCharFromDict(dict, "State");
+	//if (s == NULL) {
+	//	PyErr_Clear();
+	//	sms->State = SMS_UnSent;
+	//} else {
+	//	sms->State = StringToSMSState(s);
+	//	if (sms->State == 0)
+	//		return 0;
+	//}
 
 	return 1;
 }

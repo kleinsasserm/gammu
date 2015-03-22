@@ -408,7 +408,10 @@ StateMachine_SendSMS(StateMachineObject *self, PyObject *args, PyObject *kwds) {
         return NULL;
     }
 
-    if (!SMSFromPython(value, &sms, 0, 0, 1)) return NULL;
+    if (!SMSFromPython(value, &sms, 0, 0, 1)){
+        PyErr_SetString(PyExc_IOError, "BAD ERROR");
+        return NULL;
+    }
 
     //self->SMSStatus = ERR_TIMEOUT;
 
