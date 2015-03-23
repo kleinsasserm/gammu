@@ -201,7 +201,7 @@ int CopyStringFromDict(PyObject * dict, const char *key, size_t len,
 		s[(2 * len) + 1] = 0;
 	}
 	CopyUnicodeString(dest, s);
-	free(s);
+	//free(s);
 	return 1;
 }
 

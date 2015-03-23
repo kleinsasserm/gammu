@@ -24,25 +24,33 @@
 
 unsigned char *StringPythonToGammu(PyObject * o)
 {
-	PyObject *u;
+	//PyObject *u;
 	Py_UNICODE *ps;
 	unsigned char *gs;
 
-	u = PyUnicode_AsUnicode(o);
-	if (u == NULL) {
-		PyErr_Format(PyExc_ValueError,
-			     "Value can not be converted to unicode object");
-		return NULL;
-	}
+	//const size_t la = PyUnicode_GetSize(o);
 
-	ps = PyUnicode_AsUnicode(u);
+	//u = PyUnicode_AsUnicode(o);
+	//if (u == NULL) {
+	//	PyErr_Format(PyExc_ValueError,
+	//		     "Value can not be converted to unicode object");
+	//	return NULL;
+	//}
+
+	PyObject * temp = PyObject_Repr(o);
+	PyObject * ttemp = PyUnicode_AsEncodedString(temp, "utf-8", "Error");
+	const char * tttemp = PyBytes_AS_STRING(ttemp);
+	unsigned char * ret = (unsigned char *)&tttemp;
+
+	ps = PyUnicode_AsUnicode(o);
 	if (ps == NULL) {
 		PyErr_Format(PyExc_ValueError, "Can not get unicode value");
 		return NULL;
 	}
-	gs = strPythonToGammu(ps, PyUnicode_GetSize(u));
-	Py_DECREF(u);
-	return gs;
+	//gs = strPythonToGammu(ps, PyUnicode_GetSize(o));
+	//Py_DECREF(u);
+	//return gs;
+	return tttemp;
 }
 
 unsigned char *strPythonToGammu(const Py_UNICODE * src, const size_t len)
@@ -67,6 +75,8 @@ unsigned char *strPythonToGammu(const Py_UNICODE * src, const size_t len)
 	/* Zero terminate string. */
 	dest[(len * 2)] = 0;
 	dest[(len * 2) + 1] = 0;
+
+	int a = PyUnicode_Check(src);
 
 	return dest;
 }
